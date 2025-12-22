@@ -1,4 +1,5 @@
 from typing import List, Dict, Optional
+from textnode import *
 
 
 class HTMLNode:
@@ -89,8 +90,35 @@ class ParentNode(HTMLNode):
             return f'<{self.tag}{super().props_to_html()}>{self.value}</{self.tag}>'
         return f'<{self.tag}>{self.value}</{self.tag}>'
 
-        
-        
+
+
+def text_node_to_html_node(text_node: TextNode) -> HTMLNode:
+    match text_node.text_type:
+        case TextType.PLAIN:
+            return LeafNode(tag = None,
+                            value = text_node.text)
+        case TextType.BOLD:
+            return LeafNode(tag = "b",
+                            value = text_node.text)
+        case TextType.ITALIC:
+            return LeafNode(tag = "i",
+                            value = text_node.text)
+        case TextType.CODE:
+            return LeafNode(tag = "code",
+                            value = text_node.text)
+        case TextType.LINK:
+            return LeafNode(tag = "a",
+                            value = text_node.text,
+                            props={"href": text_node.url})
+        case TextType.IMAGE:
+            return LeafNode(tag = "img",
+                            value = "",
+                            props= {"src": text_node.url,
+                                    "alt": text_node.text})
+
+
+
+
 # print((LeafNode(tag = 'a', value = 'value',props={"href": "https://www.google.com"}).to_html()))
 
 # node = ParentNode(
