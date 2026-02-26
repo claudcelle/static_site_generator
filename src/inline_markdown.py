@@ -33,36 +33,77 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
     # pprint(new_nodes)
     return new_nodes
 
-
 def split_nodes_link(old_nodes:list[TextNode]) -> list[TextNode]:
     result = []
     for node in old_nodes:
-        assert node.text_type == TextType.PLAIN, "only plain text supported"
+        if node.text_type != TextType.PLAIN:
+            result.append(node)
+            continue
         
-        pattern = r"((?:.*?))\[(.*?)\]\((.*?)\)"
-
-        ziplist = re.findall(pattern, node.text)
-        for item in ziplist:
-            # print(item)
-            result.append(TextNode(item[0], TextType.PLAIN))
-            result.append(TextNode(item[1], TextType.LINK, item[2]))
-            # result.append(TextNode(item[3], TextType.PLAIN))
-
+        original_text=node.text
+        links = extract_markdown_links(node.text)
+        if len(links) == 0:
+            result.append(node)
+            return result
+        for image_alt, image_link in links:
+            sections = original_text.split(f"[{image_alt}]({image_link})",maxsplit=1)
+            result.append(TextNode(sections[0], TextType.PLAIN))
+            result.append(TextNode(image_alt, TextType.LINK, image_link))
+            original_text = sections[1]
     return result
 
-    
 def split_nodes_image(old_nodes:list[TextNode]) -> list[TextNode]:
     result = []
     for node in old_nodes:
-        assert node.text_type == TextType.PLAIN, "only plain text supported"
+        if node.text_type != TextType.PLAIN:
+            result.append(node)
+            continue
         
-        pattern = r"((?:.*?))!\[(.*?)\]\((.*?)\)"
-        ziplist = re.findall(pattern, node.text)
-        for item in ziplist:
-            # print(item)
-            result.append(TextNode(item[0], TextType.PLAIN))
-            result.append(TextNode(item[1], TextType.IMAGE, item[2]))
-            # result.append(TextNode(item[3], TextType.PLAIN))
-
+        original_text=node.text
+        links = extract_markdown_images(node.text)
+        if len(links) == 0:
+            result.append(node)
+            return result
+        for image_alt, image_link in links:
+            sections = original_text.split(f"![{image_alt}]({image_link})",maxsplit=1)
+            result.append(TextNode(sections[0], TextType.PLAIN))
+            result.append(TextNode(image_alt, TextType.IMAGE, image_link))
+            original_text = sections[1]
     return result
+
+# def split_nodes_link(old_nodes:list[TextNode]) -> list[TextNode]:
+#     result = []
+#     for node in old_nodes:
+#         if node.text_type != TextType.PLAIN:
+#             result.append(node)
+#             continue
+        
+        
+#         # pattern = r"((?:.*?))\[(.*?)\]\((.*?)\)"
+
+#         # ziplist = re.findall(pattern, node.text)
+#         ziplist = extract_markdown_links(node.text)
+#         for item in ziplist:
+#             # print(item)
+#             result.append(TextNode(item[0], TextType.PLAIN))
+#             result.append(TextNode(item[1], TextType.LINK, item[2]))
+#             # result.append(TextNode(item[3], TextType.PLAIN))
+
+#     return result
+
+    
+# def split_nodes_image(old_nodes:list[TextNode]) -> list[TextNode]:
+#     result = []
+#     for node in old_nodes:
+#         assert node.text_type == TextType.PLAIN, "only plain text supported"
+        
+#         pattern = r"((?:.*?))!\[(.*?)\]\((.*?)\)"
+#         ziplist = re.findall(pattern, node.text)
+#         for item in ziplist:
+#             # print(item)
+#             result.append(TextNode(item[0], TextType.PLAIN))
+#             result.append(TextNode(item[1], TextType.IMAGE, item[2]))
+#             # result.append(TextNode(item[3], TextType.PLAIN))
+
+#     return result
 
