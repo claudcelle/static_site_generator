@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class TextType(Enum):
         PLAIN  = "plain"
         BOLD   = "bold"
@@ -7,6 +8,12 @@ class TextType(Enum):
         CODE   = "code"
         LINK   = "link"
         IMAGE  = "image"
+
+class TextDelimiter(Enum):
+        BOLD   = "**"
+        ITALIC = "_"
+        CODE   = "`"
+        
 
 class TextNode:
     def __init__(self,text:str, text_type:TextType, url: str|None=None) -> None:
@@ -35,6 +42,7 @@ class TextNode:
             string+=", "
         string = string.rstrip(', ')
         return f"{self.__class__.__name__}({string})"
+
 
 
 # a = TextNode("aaa",TextType.PLAIN)

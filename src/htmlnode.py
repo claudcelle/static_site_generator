@@ -1,5 +1,7 @@
 from typing import List, Dict, Optional
 from textnode import *
+import re
+from pprint import pprint
 
 
 class HTMLNode:
@@ -91,7 +93,6 @@ class ParentNode(HTMLNode):
         return f'<{self.tag}>{self.value}</{self.tag}>'
 
 
-
 def text_node_to_html_node(text_node: TextNode) -> HTMLNode:
     match text_node.text_type:
         case TextType.PLAIN:
@@ -116,6 +117,9 @@ def text_node_to_html_node(text_node: TextNode) -> HTMLNode:
                             props= {"src": text_node.url,
                                     "alt": text_node.text})
 
+
+
+# split_nodes_delimiter("aaa bbb ccc", " ", TextType.PLAIN)
 
 
 

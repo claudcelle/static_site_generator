@@ -17,6 +17,19 @@ class TestTextNode(unittest.TestCase):
         return node.url is None
 
 
+# class TestSplitNodesDelimiter(unittest.TestCase):
+#     def test_split_nodes_code_valid(self):
+#         node = TextNode("This is text with a `code block` word", TextType.PLAIN)
+#         new_nodes = split_nodes_delimiter([node], TextDelimiter.CODE.value, TextType.CODE)
+#         self.assertEqual(new_nodes, [
+#             TextNode("This is text with a ", TextType.PLAIN), 
+#             TextNode("code block", TextType.CODE), 
+#             TextNode(" word", TextType.PLAIN),])
+#     def test_split_nodes_code_open_delimiter(self):
+#         node = TextNode("This is text with a code block` word with non closed delimiter", TextType.PLAIN)
+#         with self.assertRaises(Exception):            
+#             split_nodes_delimiter([node], TextDelimiter.CODE.value, TextType.CODE)
+
 
 
 if __name__ == "__main__":
