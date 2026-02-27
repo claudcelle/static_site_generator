@@ -6,6 +6,7 @@ from inline_markdown import (
     extract_markdown_links,
     split_nodes_image,
     split_nodes_link,
+    text_to_textnodes,
 )
 class TestSplitNodesDelimiter(unittest.TestCase):
 
@@ -284,7 +285,29 @@ class TestSplitNodes(unittest.TestCase):
             new_nodes,
         )
 
+class TestTextToNodes(unittest.TestCase):
+    def test_text_to_nodes(self):
+        text = "This is **text** with an _italic_ word and a `code block` and an ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a [link](https://boot.dev) and a ![second image](https://i.imgur.com/3elNhQu.png) and a ![third image](https://i.imgur.com/zjjcJKZ.png) then some text and a broken ![link[] (https://boot.dev and a ! [broken image image](https://i.imgur.com/zjjcJKZ.png"
+        expected = [
+            TextNode("This is ", TextType.PLAIN),
+            TextNode("text", TextType.BOLD),
+            TextNode(" with an ", TextType.PLAIN),
+            TextNode("italic", TextType.ITALIC),
+            TextNode(" word and a ", TextType.PLAIN),
+            TextNode("code block", TextType.CODE),
+            TextNode(" and an ", TextType.PLAIN),
+            TextNode("obi wan image", TextType.IMAGE, "https://i.imgur.com/fJRm4Vk.jpeg"),
+            TextNode(" and a ", TextType.PLAIN),
+            TextNode("link", TextType.LINK, "https://boot.dev"),
+            TextNode(" and a ", TextType.PLAIN),
+            TextNode("second image", TextType.IMAGE, "https://i.imgur.com/3elNhQu.png"),
+            TextNode(" and a ", TextType.PLAIN),
+            TextNode("third image", TextType.IMAGE, "https://i.imgur.com/zjjcJKZ.png"),
+            TextNode(" then some text and a broken ![link[] (https://boot.dev and a ! [broken image image](https://i.imgur.com/zjjcJKZ.png", TextType.PLAIN),
+        ]
 
+        nodes = text_to_textnodes(text)
+        self.assertListEqual(expected, nodes)
 
 if __name__ == "__main__":
     unittest.main()

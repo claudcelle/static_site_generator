@@ -40,16 +40,21 @@ def split_nodes_link(old_nodes:list[TextNode]) -> list[TextNode]:
             result.append(node)
             continue
         
-        original_text=node.text
-        links = extract_markdown_links(node.text)
+        text=node.text
+        links = extract_markdown_links(text)
         if len(links) == 0:
             result.append(node)
-            return result
-        for image_alt, image_link in links:
-            sections = original_text.split(f"[{image_alt}]({image_link})",maxsplit=1)
-            result.append(TextNode(sections[0], TextType.PLAIN))
-            result.append(TextNode(image_alt, TextType.LINK, image_link))
-            original_text = sections[1]
+            continue
+        for link in links:
+            sections = text.split(f"[{link[0]}]({link[1]})",maxsplit=1)
+            if len(sections) != 2:
+                raise ValueError(f"Delimiter {link[0]} not matched; Invalid Markdown syntax")
+            if sections[0] != "":
+                result.append(TextNode(sections[0], TextType.PLAIN))
+            result.append(TextNode(link[0], TextType.LINK, link[1]))
+            text = sections[1]
+        if text != "":
+            result.append(TextNode(text, TextType.PLAIN))   
     return result
 
 def split_nodes_image(old_nodes:list[TextNode]) -> list[TextNode]:
@@ -59,17 +64,38 @@ def split_nodes_image(old_nodes:list[TextNode]) -> list[TextNode]:
             result.append(node)
             continue
         
-        original_text=node.text
-        links = extract_markdown_images(node.text)
-        if len(links) == 0:
+        text=node.text
+        images = extract_markdown_images(text)
+        if len(images) == 0:
             result.append(node)
-            return result
-        for image_alt, image_link in links:
-            sections = original_text.split(f"![{image_alt}]({image_link})",maxsplit=1)
-            result.append(TextNode(sections[0], TextType.PLAIN))
+            continue
+        for image_alt, image_link in images:
+            sections = text.split(f"![{image_alt}]({image_link})",maxsplit=1)
+            if len(sections) != 2:
+                raise ValueError(f"Delimiter {image_alt} not matched; Invalid Markdown syntax")
+            if sections[0] != "":
+                result.append(TextNode(sections[0], TextType.PLAIN))
             result.append(TextNode(image_alt, TextType.IMAGE, image_link))
-            original_text = sections[1]
+            text = sections[1]
+        if text != "":
+            result.append(TextNode(text, TextType.PLAIN))
     return result
+
+def text_to_textnodes(text:str)->list[TextNode]:
+    
+    TEXTTYPE_TO_DELIMITER = {
+        TextType.BOLD: TextDelimiter.BOLD,
+        TextType.ITALIC: TextDelimiter.ITALIC,
+        TextType.CODE: TextDelimiter.CODE,
+    }
+    node = TextNode(text, TextType.PLAIN)
+    results = split_nodes_image([node])
+    results = split_nodes_link(results)
+    for t,d in TEXTTYPE_TO_DELIMITER.items():
+        results = split_nodes_delimiter(results, d.value, t)
+    # return [node]
+    return results
+    
 
 # def split_nodes_link(old_nodes:list[TextNode]) -> list[TextNode]:
 #     result = []
