@@ -13,15 +13,29 @@ class BlockType(Enum):
     ORDERED_LIST = "ordered_list"
 
 def block_to_block_type(block:str)->BlockType:
-    if block.startswith(tuple(["#"*i for i in range(1,7)])):
+
+    lines = block.split("\n")
+    if block.startswith(tuple(["#"*i + " " for i in range(1,7)])):
         return BlockType.HEADING
-    elif block.startswith("```\n") and block.endswith("```"):
+    elif len(lines)>1 and lines[0].startswith("```") and lines[-1].startswith("```"):
         return BlockType.CODE
     elif block.startswith(">"):
+        for line in lines:
+            if not line.startswith(">"):
+                return BlockType.PARAGRAPH
         return BlockType.QUOTE
     elif block.startswith("- "):
+        for line in lines:
+            if not line.startswith("- "):
+                return BlockType.PARAGRAPH
         return BlockType.UNORDERED_LIST
     elif block.startswith(f"{block[0]}. ") and block[0].isnumeric():
+    # elif block.startswith("1. "):
+        i = int(block[0])
+        for line in lines:
+            if not line.startswith(f"{i}. "):
+                return BlockType.PARAGRAPH
+            i+=1            
         return BlockType.ORDERED_LIST
     else:
         return BlockType.PARAGRAPH
@@ -32,11 +46,12 @@ def markdown_to_blocks(markdown:str)->list[str]:
 
     return blocks
 
-def markdown_to_html(markdown:str)->HTMLNode:
-    blocks = markdown_to_blocks(markdown)
-    for block in blocks:
-        block_type = block_to_block_type(block)
-        html_node = HTMLNode(block_type.value, block, )
+# def markdown_to_html(markdown:str)->HTMLNode:
+#     blocks = markdown_to_blocks(markdown)
+#     for block in blocks:
+#         block_type = block_to_block_type(block)
+#         html_node = HTMLNode(block_type.value, block )
+#     return html_node
 
     
 
@@ -50,16 +65,32 @@ def markdown_to_html(markdown:str)->HTMLNode:
 # - This is the first list item in a list block
 # - This is a list item
 # - This is another list item"""
+# test  = """
+# # This is a header
 
-# test = """
-#     This is **bolded** paragraph
+# ## 2nd order header
 
-#     This is another paragraph with _italic_ text and `code` here
-#     This is the same paragraph on a new line
+# This is **bolded** paragraph
+# text in a p
+# tag here
 
-#     - This is a list
-#     - with items
-#     """
+# This is another paragraph with _italic_ text and `code` here
 
+# - This is a list
+# - with items
+
+# 1. This is a numbered list
+# 2. with items
+
+# ```
+# This is a code block
+# with multiple lines of code
+# ```
+# > this is a quote
+# > with multiple lines
+
+
+
+# """
 
 # print(markdown_to_blocks(test))
