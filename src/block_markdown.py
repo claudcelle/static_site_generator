@@ -1,5 +1,7 @@
 from textnode import TextNode, TextType, TextDelimiter
-from htmlnode import HTMLNode
+from htmlnode import HTMLNode,ParentNode,LeafNode,text_node_to_html_node
+from inline_markdown import text_to_textnodes
+import re
 
 from enum import Enum
 
@@ -19,9 +21,9 @@ def block_to_block_type(block:str)->BlockType:
         return BlockType.HEADING
     elif len(lines)>1 and lines[0].startswith("```") and lines[-1].startswith("```"):
         return BlockType.CODE
-    elif block.startswith(">"):
+    elif block.startswith("> "):
         for line in lines:
-            if not line.startswith(">"):
+            if not line.startswith("> "):
                 return BlockType.PARAGRAPH
         return BlockType.QUOTE
     elif block.startswith("- "):
@@ -29,9 +31,10 @@ def block_to_block_type(block:str)->BlockType:
             if not line.startswith("- "):
                 return BlockType.PARAGRAPH
         return BlockType.UNORDERED_LIST
-    elif block.startswith(f"{block[0]}. ") and block[0].isnumeric():
-    # elif block.startswith("1. "):
-        i = int(block[0])
+    # elif block.startswith(f"{block[0]}. ") and block[0].isnumeric():
+    #     i = int(block[0])
+    elif block.startswith("1. "):
+        i = 1
         for line in lines:
             if not line.startswith(f"{i}. "):
                 return BlockType.PARAGRAPH
@@ -46,51 +49,85 @@ def markdown_to_blocks(markdown:str)->list[str]:
 
     return blocks
 
-# def markdown_to_html(markdown:str)->HTMLNode:
-#     blocks = markdown_to_blocks(markdown)
-#     for block in blocks:
-#         block_type = block_to_block_type(block)
-#         html_node = HTMLNode(block_type.value, block )
-#     return html_node
+def text_to_children(text:str)->list[HTMLNode]:
+    children = []
+    textnodes = text_to_textnodes(text)
+    for node in textnodes:
+        children.append(text_node_to_html_node(node))
+    # children = [text_node_to_html_node(child) for child in children]
+    return children
 
+
+
+def count_hash_before_space(s):
+    m = re.match(r"^#+(?=\s|$)", s)
+    return len(m.group(0)) if m else 0
+
+def block_to_nodes(block, block_type):
     
+    if block_type == BlockType.PARAGRAPH:
+        lines = block.split("\n")
+        content = ""
+        for line in lines:
+            content = " ".join([line.strip() for line in lines])
+        return ParentNode("p", text_to_children(content))
+    if block_type == BlockType.HEADING:
+        tag = f"h{count_hash_before_space(block)}" 
+        content = block.strip("#").strip()
+        return ParentNode(tag, text_to_children(content))
+    if block_type == BlockType.UNORDERED_LIST:
+        lines = block.split("\n")
+        block_children = []
+        for line in lines:
+            inline_children = [] 
+            content = line.strip("- ")
+            inline_children = text_to_children(content)
+            block_children.append(ParentNode("li", inline_children))
+        block_node = ParentNode("ul", block_children)
+        return block_node
 
-# test = """# This is a heading
+    if block_type == BlockType.ORDERED_LIST:
+        lines = block.split("\n")
+        block_children = []
+        i = 1
+        for line in lines:
+            inline_children = [] 
+            content = line.strip(f"{i}. ")
+            i+=1
+            inline_children = text_to_children(content)
+            block_children.append(ParentNode("li", inline_children))
+        block_node = ParentNode("ol", block_children)
 
-#       This is a paragraph of text. It has some **bold** and _italic_ words inside of it.
+        return block_node
 
-# \n\n 
+    if block_type == BlockType.QUOTE:
+        lines = block.split("\n")
+        children = []
+        for line in lines:
+            # print(line.strip(f"{i}. "))
+            content = line.lstrip(f"> ")
+            # children.append(LeafNode(None, content))
+            children.extend(text_to_children(content))
+        return ParentNode("blockquote",children)
+    
+    if block_type == BlockType.CODE:
+        content = block.lstrip("```\n").rstrip("```")
+        children = LeafNode("code",content)
+        return ParentNode("pre", [children])
 
+    return ParentNode("div", text_to_children(block))
 
-# - This is the first list item in a list block
-# - This is a list item
-# - This is another list item"""
-# test  = """
-# # This is a header
+def markdown_to_html_node(markdown:str)->HTMLNode:
+    blocks = markdown_to_blocks(markdown) #spacchetta il testo in blocchi di testo separati da \n\n
 
-# ## 2nd order header
-
-# This is **bolded** paragraph
-# text in a p
-# tag here
-
-# This is another paragraph with _italic_ text and `code` here
-
-# - This is a list
-# - with items
-
-# 1. This is a numbered list
-# 2. with items
-
-# ```
-# This is a code block
-# with multiple lines of code
-# ```
-# > this is a quote
-# > with multiple lines
+    children = []
 
 
+    for block in blocks:
+        block_type = block_to_block_type(block)
+        node = block_to_nodes(block,block_type)
+        print(node.to_html())
+        children.append(node)
+    main = ParentNode("div",children)
 
-# """
-
-# print(markdown_to_blocks(test))
+    return main

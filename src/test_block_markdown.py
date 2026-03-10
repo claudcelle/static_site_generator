@@ -1,6 +1,36 @@
 import unittest
 
-from block_markdown import markdown_to_blocks, block_to_block_type, BlockType
+from block_markdown import markdown_to_blocks, block_to_block_type, BlockType, markdown_to_html_node
+
+class TestMarkdownToHTML(unittest.TestCase):
+    def test_markdown_to_html_node_headers(self):
+        md = """# h1\n\n###### h6\n\n#not a header"""
+        node = markdown_to_html_node(md)
+        html = node.to_html()
+        self.assertIn("<h1>h1</h1>", html)
+        self.assertIn("<h6>h6</h6>", html)
+        self.assertIn("<p>#not a header</p>", html)
+
+    def test_markdown_to_html_node_lists(self):
+        md = """- item 1\n- item 2\n\n1. first\n2. second"""
+        node = markdown_to_html_node(md)
+        html = node.to_html()
+        self.assertIn("<ul><li>item 1</li><li>item 2</li></ul>", html)
+        self.assertIn("<ol><li>first</li><li>second</li></ol>", html)
+
+    def test_markdown_to_html_node_code_and_quote(self):
+        md = """```\ncode\n```\n\n> quote"""
+        node = markdown_to_html_node(md)
+        html = node.to_html()
+        self.assertIn("<pre><code>code\n</code></pre>", html)
+        self.assertIn("<blockquote>quote</blockquote>", html)
+
+    def test_markdown_to_html_node_paragraphs(self):
+        md = """This is a\nmulti-line paragraph.\n\nAnother one."""
+        node = markdown_to_html_node(md)
+        html = node.to_html()
+        self.assertIn("<p>This is a multi-line paragraph.</p>", html)
+        self.assertIn("<p>Another one.</p>", html)
 
 class TestMarkdownToBlocks(unittest.TestCase):
         def test_markdown_to_blocks(self):
