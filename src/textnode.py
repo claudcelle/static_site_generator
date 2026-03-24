@@ -2,36 +2,29 @@ from enum import Enum
 
 
 class TextType(Enum):
-        PLAIN  = "plain"
-        BOLD   = "bold"
-        ITALIC = "italic"
-        CODE   = "code"
-        LINK   = "link"
-        IMAGE  = "image"
+    PLAIN  = "plain"
+    BOLD   = "bold"
+    ITALIC = "italic"
+    CODE   = "code"
+    LINK   = "link"
+    IMAGE  = "image"
 
 class TextDelimiter(Enum):
-        BOLD   = "**"
-        ITALIC = "_"
-        CODE   = "`"
-        
+    BOLD   = "**"
+    ITALIC = "_"
+    CODE   = "`"
+
 
 class TextNode:
-    def __init__(self,text:str, text_type:TextType, url: str|None=None) -> None:
-        
+    def __init__(self, text: str, text_type: TextType, url: str | None = None) -> None:
         self.text = text
         self.text_type = text_type
-        self.url = url 
+        self.url = url
 
-    def __eq__(self, value: object) -> bool:
-         
-        if isinstance(value, TextNode):
-              
-            eq = True
-            for attr in self.__dict__:
-                eq *= getattr(self,attr) == getattr(value,attr)
-            return bool(eq)
-            
-        return False
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, TextNode):
+            return False
+        return (self.text, self.text_type, self.url) == (other.text, other.text_type, other.url)
 
     def __repr__(self) -> str:
         string = ""
@@ -43,12 +36,4 @@ class TextNode:
         string = string.rstrip(', ')
         return f"{self.__class__.__name__}({string})"
 
-
-
-# a = TextNode("aaa",TextType.PLAIN)
-# # b = TextNode("aba",TextType.PLAIN,"www.culo.it")
-
-# print(a)
-
-# print(a == b)
 
