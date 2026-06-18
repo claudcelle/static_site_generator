@@ -20,9 +20,9 @@ def block_to_block_type(block:str) -> BlockType:
         return BlockType.HEADING
     elif len(lines) > 1 and lines[0].startswith("```") and lines[-1].startswith("```"):
         return BlockType.CODE
-    elif block.startswith("> "):
+    elif block.startswith(">"):
         for line in lines:
-            if not line.startswith("> "):
+            if not line.startswith(">"):
                 return BlockType.PARAGRAPH
         return BlockType.QUOTE
     elif block.startswith("- "):
@@ -90,8 +90,16 @@ def block_to_nodes(block: str, block_type: BlockType) -> HTMLNode:
 
     if block_type == BlockType.QUOTE:
         lines = block.split("\n")
-        content = " ".join(line[2:] for line in lines)
-        return ParentNode("blockquote", text_to_children(content))
+        # content = " ".join(line[1:] for line in lines)
+        # return ParentNode("blockquote", text_to_children(content))
+        new_lines = []
+        for line in lines:
+            if not line.startswith(">"):
+                raise ValueError("invalid quote block")
+            new_lines.append(line.lstrip(">").strip())
+        content = " ".join(new_lines)
+        children = text_to_children(content)
+        return ParentNode("blockquote", children)
 
     if block_type == BlockType.CODE:
         lines = block.split("\n")
