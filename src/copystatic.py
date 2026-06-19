@@ -12,7 +12,8 @@ def generate_page(from_path, template_path, dest_path):
     html_content = markdown_to_html_node(content).to_html()
     title = extract_title(content)
     full_html = template.replace("{{ Title }}",title).replace("{{ Content }}", html_content)
-
+    # Crea la directory padre se non esiste
+    dest_path.parent.mkdir(parents=True, exist_ok=True)
     dest_file = open(dest_path,'w')
     dest_file.write(full_html)
 
