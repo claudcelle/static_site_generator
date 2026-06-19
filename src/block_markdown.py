@@ -119,3 +119,15 @@ def markdown_to_html_node(markdown: str) -> HTMLNode:
         block_type = block_to_block_type(block)
         children.append(block_to_nodes(block, block_type))
     return ParentNode("div", children)
+
+
+def extract_title(markdown=''):
+    if not markdown:
+        raise Exception("Markdown is empty")
+    if not isinstance(markdown,str):
+        raise TypeError("Content must be text")
+    
+    for row in markdown.split('\n'):
+        if row.startswith("# "):
+            return (row.lstrip('#')).strip()
+    raise Exception("No h1 header")
